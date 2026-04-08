@@ -1,0 +1,13 @@
+{
+  "name": "lab6-app",
+  "version": "1.0.0",
+  "description": "CISC 886 Lab 6 – Containerization demo app",
+  "main": "app.js",
+  "scripts": {
+    "start": "node app.js"
+  },
+  "dependencies": {
+    "express": "^4.22.1",
+    "mongoose": "^7.0.0"
+  }
+}
