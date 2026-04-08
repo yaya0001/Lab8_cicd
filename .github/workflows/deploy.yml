@@ -1,46 +1,54 @@
-python3 << 'PYEOF'
-content = """name: Deploy to EC2
+name: CI/CD Pipeline
 
 on:
   push:
-    branches:
-      - main
+    branches: [ main ]
 
 jobs:
-  build-and-deploy:
+  build-and-push:
     runs-on: ubuntu-latest
-
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
 
       - name: Log in to Docker Hub
-        uses: docker/login-action@v3
+        uses: docker/login-action@v2
         with:
-          username: ${{ secrets.DOCKER_USERNAME }}
-          password: ${{ secrets.DOCKER_PASSWORD }}
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
 
       - name: Build and push Docker image
-        uses: docker/build-push-action@v5
+        uses: docker/build-push-action@v4
         with:
           context: .
           push: true
-          tags: ${{ secrets.DOCKER_USERNAME }}/lab6-app:latest
+          # استبدل <your-dockerhub-username> باسم المستخدم الخاص بك أو استخدم Secret
+          tags: ${{yaya0001 }}/lab6-app:latest
 
-      - name: Deploy to EC2
-        uses: appleboy/ssh-action@v1.0.0
+  deploy:
+    needs: build-and-push
+    runs-on: ubuntu-latest
+    steps:
+      - name: Deploy to EC2 via SSH
+        uses: appleboy/ssh-action@master
         with:
           host: ${{ secrets.EC2_HOST }}
-          username: ubuntu
-          key: ${{ secrets.EC2_KEY }}
+          username: ec2-user
+          key: ${{ secrets.EC2_SSH_KEY }}
           script: |
+            # 1. الدخول لمجلد المشروع
             cd ~/lab8-cicd
-            git pull
+            
+            # 2. جلب آخر التعديلات (مثل docker-compose.yml و init.js)
+            git pull origin main
+            
+            # 3. سحب الصورة الجديدة من Docker Hub
             docker compose pull
+            
+            # 4. إيقاف الحاويات القديمة وتنزيل الجديدة
+            # ملاحظة: إذا أردت مسح البيانات القديمة لتفعيل init.js جديد، استخدم docker compose down -v
             docker compose down
             docker compose up -d
-"""
-with open('/home/ubuntu/lab8-cicd/.github/workflows/deploy.yml', 'w') as f:
-    f.write(content)
-print("Done!")
-PYEOF
+            
+            # 5. تنظيف الصور القديمة غير المستخدمة لتوفير المساحة
+            docker image prune -f
