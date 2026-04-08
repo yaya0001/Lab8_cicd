@@ -1,4 +1,4 @@
-name: CI/CD Pipeline
+name: Deploy Multi-Container App
 
 on:
   push:
@@ -11,19 +11,18 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v3
 
-      - name: Log in to Docker Hub
+      - name: Login to Docker Hub
         uses: docker/login-action@v2
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-      - name: Build and push Docker image
+      - name: Build and push Docker images
         uses: docker/build-push-action@v4
         with:
           context: .
           push: true
-          # استبدل <your-dockerhub-username> باسم المستخدم الخاص بك أو استخدم Secret
-          tags: yaya0001 /lab6-app:latest
+          tags: ${{ secrets.DOCKERHUB_USERNAME }}/lab-8-cicd-app:latest
 
   deploy:
     needs: build-and-push
@@ -33,22 +32,10 @@ jobs:
         uses: appleboy/ssh-action@master
         with:
           host: ${{ secrets.EC2_HOST }}
-          username: ec2-user
+          username: ubuntu
           key: ${{ secrets.EC2_SSH_KEY }}
           script: |
-            # 1. الدخول لمجلد المشروع
-            cd ~/lab8-cicd
-            
-            # 2. جلب آخر التعديلات (مثل docker-compose.yml و init.js)
+            cd ~/lab-8-cicd
             git pull origin main
-            
-            # 3. سحب الصورة الجديدة من Docker Hub
             docker compose pull
-            
-            # 4. إيقاف الحاويات القديمة وتنزيل الجديدة
-            # ملاحظة: إذا أردت مسح البيانات القديمة لتفعيل init.js جديد، استخدم docker compose down -v
-            docker compose down
             docker compose up -d
-            
-            # 5. تنظيف الصور القديمة غير المستخدمة لتوفير المساحة
-            docker image prune -f
