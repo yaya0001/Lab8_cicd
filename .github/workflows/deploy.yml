@@ -1,5 +1,4 @@
 name: Deploy Multi-Container App
-
 on:
   push:
     branches: [ main ]
