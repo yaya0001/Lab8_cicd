@@ -23,7 +23,7 @@ jobs:
           context: .
           push: true
           # استبدل <your-dockerhub-username> باسم المستخدم الخاص بك أو استخدم Secret
-          tags: ${{yaya0001 }}/lab6-app:latest
+          tags: yaya0001 /lab6-app:latest
 
   deploy:
     needs: build-and-push
