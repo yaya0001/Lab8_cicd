@@ -18,7 +18,8 @@ const connectWithRetry = () => {
       if (count === 0) {
         await Task.insertMany([
           { id: 1, name: "Task1", status: "pending" },
-          { id: 2, name: "Task2", status: "done" }
+          { id: 2, name: "Task2", status: "done" },
+          { id: 7, name: "Tea", status: "pending" }
         ]);
         console.log("Seed data inserted");
       }
